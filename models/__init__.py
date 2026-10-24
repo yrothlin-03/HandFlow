@@ -1,3 +1,5 @@
-from .cfg_cfm.model import HandFlow
 
-__all__ = ["HandFlow"]
+from .temporal_unet_1d import TemporalUnet1D
+
+
+__all__ = ["TemporalUnet1D"]

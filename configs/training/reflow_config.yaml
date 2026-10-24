@@ -1,0 +1,38 @@
+seed: 42
+
+model:
+  time_length: 60
+  in_channels: 198
+  d_in: 256
+  n_stages: 2
+  d_cond: 128
+
+data:
+  root: datasets/preprocessed/handx
+  batch_size: 32
+  num_workers: 4
+  use_paraphrases: true
+  normalize_motion: true
+  normalize_text: false
+  drop_last_train: true
+  pin_memory: true
+
+training:
+  representation: mano_6d
+  epochs: 15
+  max_steps: null
+  checkpoint_path: checkpoints/reflow/reflow_temporal_unet_1d_mano_6d.pt
+  optimizer: adamw
+  lr: 0.0001
+  weight_decay: 0.0001
+  scheduler: cosine
+  criterion: mse
+  cfg_dropout: 0.1
+  grad_clip: 1.0
+  log_every: 500
+  log_level: INFO
+
+generation:
+  num_steps: 50
+  guidance_scale: 2.0
+  sample_index: 0

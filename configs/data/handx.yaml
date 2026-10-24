@@ -1,0 +1,35 @@
+paths:
+  input: datasets/HandX
+  output: datasets/preprocessed/handx
+
+splits:
+  - train
+  - test
+
+text_embedding:
+  model_name: google-t5/t5-small
+  batch_size: 128
+  max_length: 64
+  dtype: float32
+  device: auto
+  pooling: attention_masked_mean
+
+lmdb:
+  map_size_gb: 64
+  commit_every: 512
+  overwrite: true
+  readahead: false
+  meminit: false
+  map_async: true
+
+features:
+  dimension: 198
+  dtype: float32
+  mano_joint_count: 16
+  rotation_dimension: 6
+  hand_dimension: 99
+
+statistics:
+  split: train
+  epsilon: 1.0e-12
+  text_scope: all_variants

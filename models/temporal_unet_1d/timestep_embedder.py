@@ -1,6 +1,5 @@
 
 import math
-
 import torch
 import torch.nn as nn
 
@@ -29,7 +28,6 @@ class TimestepEmbedder(nn.Module):
         dim: int,
         max_period: int = 10000,
     ) -> torch.Tensor:
-
         half = dim // 2
 
         frequencies = torch.exp(
