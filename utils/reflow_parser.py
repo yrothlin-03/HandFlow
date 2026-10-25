@@ -1,7 +1,24 @@
 import argparse
 from copy import deepcopy
+from pathlib import Path
 
 import yaml
+
+
+def load_reflow_config(path):
+    path = Path(path).resolve()
+    with path.open(encoding="utf-8") as file:
+        config = yaml.safe_load(file)
+
+    model_path = Path(config["model_config"])
+    if not model_path.is_absolute():
+        model_path = (path.parent / model_path).resolve()
+    with model_path.open(encoding="utf-8") as file:
+        model_config = yaml.safe_load(file)
+    config["checkpoint_path"] = model_config.pop("checkpoint_path")
+    config["model"] = model_config
+
+    return config
 
 
 def _flatten(config, prefix=""):

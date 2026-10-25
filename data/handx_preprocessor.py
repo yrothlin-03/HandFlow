@@ -102,7 +102,7 @@ class TextEncoder:
     def __call__(self, texts):
         tokens = self.tokenizer(
             texts,
-            padding=True,
+            padding="max_length",
             truncation=True,
             max_length=self.max_length,
             return_tensors="pt",
@@ -112,9 +112,10 @@ class TextEncoder:
                 input_ids=tokens["input_ids"],
                 attention_mask=tokens["attention_mask"],
             ).last_hidden_state
-            mask = tokens["attention_mask"].unsqueeze(-1).to(hidden.dtype)
-            embeddings = (hidden * mask).sum(dim=1) / mask.sum(dim=1).clamp_min(1)
-        return embeddings.cpu().numpy().astype(self.dtype, copy=False)
+        return (
+            hidden.cpu().numpy().astype(self.dtype, copy=False),
+            tokens["attention_mask"].cpu().numpy().astype(np.bool_, copy=False),
+        )
 
 
 def prepare_record(split, index, key, motion, mano, source):
@@ -176,14 +177,20 @@ def encode_records(records, encoder, batch_size):
         texts.extend(record["texts"])
         offsets.append(len(texts))
 
-    parts = []
+    embedding_parts = []
+    attention_mask_parts = []
     for start in range(0, len(texts), batch_size):
-        parts.append(encoder(texts[start : start + batch_size]))
-    embeddings = np.concatenate(parts, axis=0)
+        embeddings, attention_masks = encoder(texts[start : start + batch_size])
+        embedding_parts.append(embeddings)
+        attention_mask_parts.append(attention_masks)
+    embeddings = np.concatenate(embedding_parts, axis=0)
+    attention_masks = np.concatenate(attention_mask_parts, axis=0)
 
     for record, start, end in zip(records, offsets[:-1], offsets[1:]):
         record["text_embeddings"] = embeddings[start:end].copy()
+        record["attention_masks"] = attention_masks[start:end].copy()
         record["text_embedding"] = embeddings[start].copy()
+        record["attention_mask"] = attention_masks[start].copy()
 
 
 def feature_schema(text_encoder, embedding_dtype, statistics_config):
@@ -220,7 +227,7 @@ def feature_schema(text_encoder, embedding_dtype, statistics_config):
             "dimension": text_encoder.dimension,
             "dtype": embedding_dtype,
             "max_length": text_encoder.max_length,
-            "pooling": "attention_masked_mean",
+            "pooling": "none",
         },
         "statistics": {
             "split": statistics_config["split"],
@@ -250,7 +257,9 @@ def feature_schema(text_encoder, embedding_dtype, statistics_config):
             "text",
             "canonical_text",
             "text_embeddings",
+            "attention_masks",
             "text_embedding",
+            "attention_mask",
         ],
     }
 
@@ -270,7 +279,9 @@ def write_records(transaction, records, keys, split_keys, statistics):
             statistics["sum"] += values.sum(axis=0)
             statistics["sum_square"] += np.square(values).sum(axis=0)
             statistics["count"] += len(values)
-            text_values = record["text_embeddings"].astype(np.float64)
+            text_values = record["text_embeddings"][
+                record["attention_masks"]
+            ].astype(np.float64)
             statistics["text_sum"] += text_values.sum(axis=0)
             statistics["text_sum_square"] += np.square(text_values).sum(axis=0)
             statistics["text_count"] += len(text_values)
@@ -351,8 +362,8 @@ def main():
         raise ValueError("Batch and commit sizes must be positive")
     if text_config["dtype"] not in {"float16", "float32"}:
         raise ValueError("Embedding dtype must be float16 or float32")
-    if text_config["pooling"] != "attention_masked_mean":
-        raise ValueError("Text pooling must be attention_masked_mean")
+    if text_config["pooling"] != "none":
+        raise ValueError("Text pooling must be none")
     if int(feature_config["dimension"]) != MANO_BIMANUAL_DIM:
         raise ValueError("Configured MANO dimension must be 198")
     if statistics_config["split"] not in splits:

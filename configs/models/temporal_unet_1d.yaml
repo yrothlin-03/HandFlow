@@ -1,0 +1,9 @@
+checkpoint_path: checkpoints/reflow/temporal_unet_1d_mha.pt
+time_length: 60
+in_channels: 198
+d_in: 256
+n_stages: 2
+d_cond: 128
+blocks_per_stage: 2
+attention_heads: 8
+attention_dropout: 0.2

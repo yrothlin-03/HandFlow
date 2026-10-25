@@ -1,0 +1,8 @@
+checkpoint_path: checkpoints/reflow/mdit.pt
+motion_dim: 198
+text_dim: 512
+hidden_dim: 512
+depth: 8
+num_heads: 8
+max_frames: 60
+mlp_ratio: 4.0

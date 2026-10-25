@@ -7,7 +7,7 @@
 #SBATCH --mem=48G
 #SBATCH --gres=gpu:1
 #SBATCH --time=24:00:00
-#SBATCH --job-name=reflow-training
+#SBATCH --job-name=reflow_training_model_update
 #SBATCH --output=/home/infres/yrothlin-24/HandFlow/logs/reflow/%x_%j.out
 #SBATCH --error=/home/infres/yrothlin-24/HandFlow/logs/reflow/%x_%j.err
 
@@ -26,4 +26,6 @@ cd /home/infres/yrothlin-24/HandFlow
 
 mkdir -p logs/reflow checkpoints/reflow
 
-python reflow_train.py
+python reflow_train.py \
+    --parsing True \
+    --model_config ../models/mdit.yaml

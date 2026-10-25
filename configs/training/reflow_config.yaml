@@ -1,14 +1,10 @@
 seed: 42
 
-model:
-  time_length: 60
-  in_channels: 198
-  d_in: 256
-  n_stages: 2
-  d_cond: 128
+# model_config: ../models/temporal_unet_1d.yaml
+model_config: ../models/mdit.yaml
 
 data:
-  root: datasets/preprocessed/handx
+  root: datasets/preprocessed/handx_v2
   batch_size: 32
   num_workers: 4
   use_paraphrases: true
@@ -19,9 +15,8 @@ data:
 
 training:
   representation: mano_6d
-  epochs: 15
-  max_steps: null
-  checkpoint_path: checkpoints/reflow/reflow_temporal_unet_1d_mano_6d.pt
+  epochs: 5
+  max_steps: 2000
   optimizer: adamw
   lr: 0.0001
   weight_decay: 0.0001

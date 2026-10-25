@@ -166,14 +166,22 @@ class ReFlowTrainer:
             self.device,
             non_blocking=True,
         )
+        if "attention_mask" not in batch:
+            raise KeyError("Batch does not contain attention_mask")
+        attention_mask = batch["attention_mask"].to(
+            self.device,
+            non_blocking=True,
+        )
         frame_mask = batch.get("frame_mask")
         if frame_mask is not None:
             frame_mask = frame_mask.to(self.device, non_blocking=True)
 
-        return motion.contiguous(), text_embedding, frame_mask
+        return motion.contiguous(), text_embedding, attention_mask, frame_mask
 
     def _compute_loss(self, batch):
-        x_1, text_embedding, frame_mask = self._prepare_batch(batch)
+        x_1, text_embedding, attention_mask, frame_mask = self._prepare_batch(
+            batch
+        )
         batch_size = x_1.shape[0]
         x_0 = torch.randn_like(x_1)
         timesteps = torch.rand(batch_size, device=self.device)
@@ -190,7 +198,14 @@ class ReFlowTrainer:
             torch.rand(batch_size, device=self.device)
             < self._get("cfg_dropout", 0.1)
         )
-        prediction = self.model(x_t, timesteps, text_embedding, drop_mask)
+        prediction = self.model(
+            x_t,
+            timesteps,
+            text_embedding,
+            drop_mask=drop_mask,
+            frame_mask=frame_mask,
+            attention_mask=attention_mask,
+        )
         flow_loss = self.criterion(prediction, target_velocity)
 
         if frame_mask is None:

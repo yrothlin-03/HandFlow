@@ -154,6 +154,9 @@ class HandX(Dataset):
 
         x = self._tensor(record["x"])
         text_embeddings = self._tensor(record["text_embeddings"])
+        attention_masks = torch.as_tensor(
+            record["attention_masks"], dtype=torch.bool
+        )
         if self.normalize_motion:
             x = (x - self.motion_mean) / self.motion_std
         if self.normalize_text:
@@ -186,9 +189,11 @@ class HandX(Dataset):
             "joint_positions": positions,
             "texts": record["texts"],
             "text_embeddings": text_embeddings,
+            "attention_masks": attention_masks,
             "text_index": torch.tensor(text_index, dtype=torch.long),
             "text": record["texts"][text_index],
             "text_embedding": text_embeddings[text_index],
+            "attention_mask": attention_masks[text_index],
             "canonical_text": record["canonical_text"],
             "left_text": record["left_texts"][text_index],
             "right_text": record["right_texts"][text_index],
@@ -232,7 +237,7 @@ def collate_handx(records, target_length=None):
         values = [record[key] for record in records]
         if key in TEMPORAL_FIELDS:
             batch[key] = pad_sequence(values, batch_first=True)
-        elif key == "text_embeddings":
+        elif key in {"text_embeddings", "attention_masks"}:
             batch[key] = pad_sequence(values, batch_first=True)
         elif torch.is_tensor(values[0]):
             batch[key] = torch.stack(values)

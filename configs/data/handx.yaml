@@ -1,6 +1,6 @@
 paths:
   input: datasets/HandX
-  output: datasets/preprocessed/handx
+  output: datasets/preprocessed/handx_v2
 
 splits:
   - train
@@ -12,10 +12,10 @@ text_embedding:
   max_length: 64
   dtype: float32
   device: auto
-  pooling: attention_masked_mean
+  pooling: none
 
 lmdb:
-  map_size_gb: 64
+  map_size_gb: 128
   commit_every: 512
   overwrite: true
   readahead: false
