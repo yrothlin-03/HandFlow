@@ -54,11 +54,24 @@ Text embeddings are produced with `google-t5/t5-small` using attention-mask-awar
 
 ## Axis 1 — HandMDM Reproduction
 
+### Completed
+
+- Ported the HandMDM transformer denoiser into `models/handmdm/` (verbatim). (27/10/2026)
+- Ported the Gaussian diffusion (cosine schedule, 100 steps, x0 prediction, CFG), without Lightning and STMC. (27/10/2026)
+- Normalizer accepts statistics as tensors (HandX LMDB) or official stat files. (27/10/2026)
+- Ported the CLIP ViT-B/32 text encoder (one 512-dimensional vector per sentence). (27/10/2026)
+- Verified against the original code: same checkpoint keys, loss, and samples.
+
+> sampler uses the posterior variance instead of its square root as noise scale (kept for reproduction).
+> BOBSL3DT access pending, so Table 2 reproduction is blocked.
+
 ### To Do
 
-- Implement the conditioned DiT architecture from HandMDM.
-- Implement the HandMDM diffusion trainer.
-- Train and evaluate it on HandX.
+- Inference script with the official checkpoint.
+- Convert SMPL-X 274D outputs to HandX hands and visualize them.
+- Set up the HandX evaluator and run HandMDM on the HandX test set.
+- Implement the HandMDM trainer and train on HandX.
+- BOBSL3DT loader and combined BOBSL3DT + HandX training.
 
 ## Axis 2 — Flow-Matching-Based Generation
 
