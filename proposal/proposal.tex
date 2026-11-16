@@ -1,0 +1,97 @@
+% Project proposal — Object Recognition and Computer Vision (MVA)
+% Constraint: a single 1-page PDF.
+% Compile from this folder: latexmk -pdf proposal.tex
+
+\documentclass[10pt]{article}
+
+\usepackage[a4paper, margin=1.6cm, top=1.3cm, bottom=1.3cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xcolor}
+
+% Compact layout
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{2pt}
+\setlist{nosep, leftmargin=*}
+\titleformat{\section}{\normalsize\bfseries}{\thesection.}{0.4em}{}
+\titleformat{\subsection}{\small\bfseries}{\thesubsection}{0.4em}{}
+\titlespacing*{\section}{0pt}{4pt}{2pt}
+\titlespacing*{\subsection}{0pt}{3pt}{1pt}
+
+% Placeholder marker, remove before submission
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+
+\begin{document}
+
+% ---------------------------------------------------------------- Title
+\begin{center}
+  {\large\bfseries Project proposal — Topic F: 3D hand motion generation from text}\\[2pt]
+  \todo{project title}\\[2pt]
+  Théo Palagi \quad Yanic \todo{last name} \qquad
+  {\small MVA — Object Recognition and Computer Vision}
+\end{center}
+
+% ---------------------------------------------------------------- (i) Topic
+\section{Topic}
+\todo{2-3 sentences: motivation, goal (combine BOBSL3DT~\cite{handmdm} and HandX~\cite{handx}), what goes beyond the topic description.}
+
+% ---------------------------------------------------------------- (ii) Plan of work
+\section{Plan of work}
+
+\textbf{Data.} \todo{BOBSL3DT (access status), HandX redistributed subset (no ARCTIC, H2O), common motion representation, text encoder.}
+
+\subsection*{Axis 1: Scaling HandMDM with HandX (Théo)}
+We ported HandMDM~\cite{handmdm} (CLIP-conditioned transformer, Gaussian diffusion with $x_0$ prediction, classifier-free guidance) into our codebase and verified it against the official implementation (identical checkpoint keys, loss and samples).
+\textbf{(a) Reproduction.} We run the released model on BOBSL3DT \texttt{test\_unseen} and compare R@k and FID (THMR evaluator) with Table~2 (last row).
+\textbf{(b) Zero-shot on HandX.} We run the same model on the HandX test texts. Its SMPL-X outputs are converted to both MANO hands (forward kinematics, HandX canonical frame, resampling to 60 frames) and scored with the HandX evaluator. We analyze failures by text type. Our hypotheses are bimanual interactions (absent from phonology descriptions), global hand translations, longer sequences ($\le$3\,s in BOBSL3DT) and a text distribution shift (HandX texts are out of distribution for the BOBSL3DT CLIP statistics).
+\textbf{(c) Joint training.} Both datasets are mapped to a common representation: two MANO hands with translation and 6D rotations (198D), BOBSL3DT being converted with SMPL-X forward kinematics. All models share the HandMDM architecture, CLIP text encoder and hyperparameters, so only the training data changes (table below). If the data is too large, we train on subsets of equal size for all models. The HandX-only model, tested on BOBSL3DT, also gives the reverse generalization experiment (step 5).
+\textbf{Risks.} BOBSL3DT access is pending; HandX experiments do not depend on it. THMR may need an adaptation to score the 198D representation.
+
+\subsection*{Axis 2: OT flow matching on HandX (Yanic)}
+\todo{what we implement, experiments, metrics.}
+
+\subsection*{Axis 3: Latent flow matching (Yanic, Théo)}
+\todo{what we implement, experiments, metrics.}
+
+\subsection*{Axis 4: Extension to hand-object interaction (Yanic, Théo)}
+\todo{optional axis, datasets (Text2HOI, GRAB).}
+
+\textbf{Evaluation.} \todo{metrics shared by all axes, visualizations (step 9).}
+
+% Experiment table template
+\begin{center}
+\small
+\begin{tabular}{lccc}
+  \toprule
+  Model / training data & BOBSL3DT test & HandX test & Purpose \\
+  \midrule
+  HandMDM official (full BOBSL3DT) & R@k, FID & FID, R-prec. & reproduction (a), zero-shot (b) \\
+  HandMDM, BOBSL3DT subset & R@k, FID & FID, R-prec. & cost of subsampling \\
+  HandMDM, HandX only & R@k, FID & FID, R-prec. & HandX reference, reverse transfer \\
+  HandMDM, BOBSL3DT + HandX & R@k, FID & FID, R-prec. & benefit of combining (c) \\
+  \todo{axes 2--4 rows} & & & \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+% ---------------------------------------------------------------- (iii) Group
+\section{Group and work sharing}
+\todo{members, who does what, shared components (data pipeline, evaluation), timeline.}
+
+% ---------------------------------------------------------------- References
+{\footnotesize
+\begin{thebibliography}{9}
+\setlength{\itemsep}{0pt}
+\bibitem{handmdm} L.~Bensabath, M.~Petrovich, G.~Varol. Text-Driven 3D Hand Motion Generation from Sign Language Data. CVPR 2026.
+\bibitem{handx} Z.~Zhang et al. HandX: Scaling Bimanual Motion and Interaction Generation. CVPR 2026.
+\end{thebibliography}
+}
+
+\end{document}

@@ -5,3 +5,11 @@ logs/
 __pycache__/
 perso/
 .DS_Store
+
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
