@@ -4,13 +4,15 @@
 
 \documentclass[10pt]{article}
 
-\usepackage[a4paper, margin=1.4cm, top=1.0cm, bottom=1.0cm]{geometry}
+\usepackage[a4paper, margin=1.2cm, top=0.8cm, bottom=0.8cm]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{lmodern}
 \usepackage{microtype}
 \usepackage{amsmath, amssymb}
 \usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[font=footnotesize]{caption}
 \usepackage{enumitem}
 \usepackage{titlesec}
 \usepackage[hidelinks]{hyperref}
@@ -18,12 +20,15 @@
 
 % Compact layout
 \setlength{\parindent}{0pt}
-\setlength{\parskip}{1pt}
+\setlength{\parskip}{0pt}
+\linespread{0.96}
+\setlength{\intextsep}{4pt}
+\captionsetup[figure]{skip=2pt}
 \setlist{nosep, leftmargin=*}
 \titleformat{\section}{\normalsize\bfseries}{\thesection.}{0.4em}{}
 \titleformat{\subsection}{\small\bfseries}{\thesubsection}{0.4em}{}
-\titlespacing*{\section}{0pt}{4pt}{2pt}
-\titlespacing*{\subsection}{0pt}{3pt}{1pt}
+\titlespacing*{\section}{0pt}{3pt}{1pt}
+\titlespacing*{\subsection}{0pt}{2pt}{1pt}
 
 % Placeholder marker, remove before submission
 \newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
@@ -33,9 +38,9 @@
 % ---------------------------------------------------------------- Title
 \begin{center}
   {\large\bfseries Project proposal — Topic F: 3D hand motion generation from text}\\[2pt]
-  \todo{project title}\\[2pt]
+  % \todo{project title}\\[2pt]
   Théo Palagi \quad Yanic Rothlingshofer \qquad
-  {\small MVA — Object Recognition and Computer Vision}
+  % {\small MVA — Object Recognition and Computer Vision}
 \end{center}
 
 % ---------------------------------------------------------------- (i) Topic
@@ -48,17 +53,21 @@ Text-driven 3D hand motion should generalize beyond sign-language data to varied
 \textbf{Data.} BOBSL3DT~\cite{handmdm} contains sign-language hand motions with text descriptions (access pending). HandX~\cite{handx} contains everyday bimanual motions with text; we use its public subset (without ARCTIC and H2O). To train and test on both, we convert them to one common format: two MANO hands over 60 frames (198D).
 
 \subsection*{Axis 1: Scaling HandMDM with HandX (Théo)}
-We ported HandMDM~\cite{handmdm} into our codebase and verified it against the official implementation (identical checkpoint keys, loss and samples).
-\textbf{(a) Reproduction.} We run the released model on BOBSL3DT \texttt{test\_unseen} and compare R@k and FID (THMR evaluator) with Table~2 (last row).
-\textbf{(b) Zero-shot on HandX.} We run the same model on the HandX test texts. Its SMPL-X outputs are converted to both MANO hands (forward kinematics, HandX canonical frame, resampling to 60 frames) and scored with the HandX evaluator. We analyze failures by text type. 
-\textbf{(c) Joint training.} All models are trained in the common 198D representation and share the HandMDM architecture, CLIP text encoder and hyperparameters, so only the training data changes (table below). The HandX-only model, tested on BOBSL3DT, also gives the reverse generalization experiment (step 5).
+We ported HandMDM~\cite{handmdm} and verified identical checkpoint keys, loss and samples against the official code. \textbf{(a) Reproduction:} run the released model on BOBSL3DT \texttt{test\_unseen} and compare THMR R@k/FID with Table~2 (last row). \textbf{(b) Zero-shot:} test it on HandX texts; convert SMPL-X outputs to two MANO hands by forward kinematics in the HandX canonical frame, resample to 60 frames, score with the HandX evaluator and analyze failures by text type. \textbf{(c) Joint training:} train HandMDM on BOBSL3DT + HandX in the shared 198D format, retaining its architecture, CLIP text encoder and hyperparameters; evaluate on both datasets.
 
-\subsection*{Axis 2: OT flow matching on HandX (Yanic)}
-We fit a text-conditioned velocity field to the shared 198D MANO representation. Starting from our Gaussian-to-motion flow, we add minibatch optimal-transport (OT) pairing and compare it with independent pairing. We test temporal U-Net and Diffusion Transformer (DiT) backbones, each with adaptive layer normalization (AdaLN) or cross-attention text conditioning ($2\times2$ ablation). With matched HandX splits and training budgets, we assess FID, R-precision, diversity and sampling time across integration steps, and compare with HandMDM. We use classifier-free guidance at inference.
+\subsection*{Axis 2: OT flow matching on BOBSL3DT + HandX (Yanic)}
+We train a text-conditioned velocity field on the joint BOBSL3DT + HandX data in the shared 198D MANO representation. Starting from our Gaussian-to-motion flow, we add minibatch optimal-transport (OT) pairing and compare it with independent pairing. We test temporal U-Net and Diffusion Transformer (DiT) backbones, each with adaptive layer normalization (AdaLN) or cross-attention text conditioning ($2\times2$ ablation). With matched splits and training budgets, we assess FID, R-precision, diversity and sampling time across integration steps, compare with HandMDM, and use classifier-free guidance at inference.
 
 \subsection*{Axis 3: Latent flow matching (Yanic, Théo)}
-We first train a temporal autoencoder to compress bimanual motion and check reconstruction error in joint positions, rotations and hand trajectories. We then apply the Axis~2 text-conditioned flow to its continuous latent codes and decode generated samples. With matched HandX splits and compute, we compare latent and motion-space flows on FID, R-precision, diversity and sampling time, while varying latent size to measure the quality--speed trade-off.
+We train a temporal VAE on BOBSL3DT + HandX to compress bimanual motion, measuring reconstruction error in joint positions, rotations and hand trajectories. We apply the Axis~2 text-conditioned flow to continuous latent codes and decode its samples. With matched splits and compute, we compare latent and motion-space flows on FID, R-precision, diversity and sampling time, varying latent size to quantify the quality--speed trade-off.
 \textbf{Hand-object extension.} If time permits, we extend the latent representation to object pose and condition generation on text and object geometry, following the settings of Text2HOI~\cite{text2hoi}, LatentHOI~\cite{latenthoi} and HO-Flow~\cite{hoflow}. We will evaluate on their text-annotated interaction data and GRAB, including hand--object contact and penetration alongside motion quality.
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=.84\linewidth]{figure/text_driven_latent_flow_matching.pdf}
+  \caption{Latent-flow training (a) and text-conditioned generation with the VAE decoder (b).}
+  \label{fig:latent-flow}
+\end{figure}
 
 \textbf{Evaluation.} We follow each dataset's protocol: R@k and FID on BOBSL3DT, as in HandMDM, and FID, R-precision and diversity on HandX, with its evaluator. All models are compared on the same test splits, and we show generated motions as 3D hand animations.
 
@@ -69,19 +78,16 @@ We first train a temporal autoencoder to compress bimanual motion and check reco
   \toprule
   Model / training data & BOBSL3DT test & HandX test & Purpose \\
   \midrule
-  HandMDM official (full BOBSL3DT) & R@k, FID & FID, R-prec. & reproduction (a), zero-shot (b) \\
-  HandMDM, BOBSL3DT subset & R@k, FID & FID, R-prec. & cost of subsampling \\
-  HandMDM, HandX only & R@k, FID & FID, R-prec. & HandX reference, reverse transfer \\
-  HandMDM, BOBSL3DT + HandX & R@k, FID & FID, R-prec. & benefit of combining (c) \\
-  Flow, HandX & --- & FID, R-prec. & independent pairing baseline \\
-  OT flow, HandX & --- & FID, R-prec. & effect of OT pairing \\
-  Latent flow, HandX & --- & FID, R-prec. & quality vs. sampling time \\
+  HandMDM, BOBSL3DT & R@k, FID & FID, R-prec. & reproduction; zero-shot transfer \\
+  HandMDM, BOBSL3DT + HandX & R@k, FID & FID, R-prec. & benefit of joint training \\
+  Flow matching, BOBSL3DT + HandX & R@k, FID & FID, R-prec. & OT pairing and backbone ablations \\
+  Latent flow, BOBSL3DT + HandX & R@k, FID & FID, R-prec. & quality vs. sampling time \\
   \bottomrule
 \end{tabular}\par}
 
 % ---------------------------------------------------------------- (iii) Group
 \section{Group and work sharing}
-Theo will focus on Axis 1, Yanic will focus on Axis 2 and for axis 3 we will divide the task between VAE training and Latent Flow Matching pipeline then one will focus on text-driven hand motion generation and the other on hand object interaction data.
+Théo leads Axis 1 and Yanic Axis 2. For Axis 3, they split VAE and latent-flow training, then divide their work between text-driven motion and hand--object interaction data.
 
 
 % ---------------------------------------------------------------- References
