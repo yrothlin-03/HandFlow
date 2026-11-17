@@ -4,7 +4,7 @@
 
 \documentclass[10pt]{article}
 
-\usepackage[a4paper, margin=1.6cm, top=1.3cm, bottom=1.3cm]{geometry}
+\usepackage[a4paper, margin=1.6cm, top=1.1cm, bottom=1.1cm]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{lmodern}
@@ -18,7 +18,7 @@
 
 % Compact layout
 \setlength{\parindent}{0pt}
-\setlength{\parskip}{2pt}
+\setlength{\parskip}{1pt}
 \setlist{nosep, leftmargin=*}
 \titleformat{\section}{\normalsize\bfseries}{\thesection.}{0.4em}{}
 \titleformat{\subsection}{\small\bfseries}{\thesubsection}{0.4em}{}
@@ -32,15 +32,15 @@
 
 % ---------------------------------------------------------------- Title
 \begin{center}
-  {\large\bfseries Project proposal — Topic F: 3D hand motion generation from text}\\[2pt]
-  \todo{project title}\\[2pt]
-  Théo Palagi \quad Yanic \todo{last name} \qquad
+  {\large\bfseries Project proposal — Topic F: 3D hand motion generation from text}\\[4pt]
+  % \todo{project title}
+  Théo Palagi \quad Yanic ROTHLINGSHOFER \qquad
   {\small MVA — Object Recognition and Computer Vision}
 \end{center}
 
 % ---------------------------------------------------------------- (i) Topic
 \section{Topic}
-\todo{2-3 sentences: motivation, goal (combine BOBSL3DT~\cite{handmdm} and HandX~\cite{handx}), what goes beyond the topic description.}
+Text-driven 3D hand motion should generalize beyond sign-language data to varied bimanual actions. We will combine BOBSL3DT~\cite{handmdm} and HandX~\cite{handx} in a shared representation, measure cross-dataset transfer, and compare diffusion with motion-space and latent flow matching. We will also explore text-guided hand--object interaction generation.
 
 % ---------------------------------------------------------------- (ii) Plan of work
 \section{Plan of work}
@@ -55,13 +55,11 @@ We ported HandMDM~\cite{handmdm} (CLIP-conditioned transformer, Gaussian diffusi
 \textbf{Risks.} BOBSL3DT access is pending; HandX experiments do not depend on it. THMR may need an adaptation to score the 198D representation.
 
 \subsection*{Axis 2: OT flow matching on HandX (Yanic)}
-\todo{what we implement, experiments, metrics.}
+We fit a text-conditioned velocity field to the shared 198D MANO representation. Starting from our Gaussian-to-motion flow, we add minibatch optimal-transport (OT) pairing and compare it with independent pairing. We test temporal U-Net and Diffusion Transformer (DiT) backbones, each with adaptive layer normalization (AdaLN) or cross-attention text conditioning ($2\times2$ ablation). With matched HandX splits and training budgets, we assess FID, R-precision, diversity and sampling time across integration steps, and compare with HandMDM. We use classifier-free guidance at inference.
 
 \subsection*{Axis 3: Latent flow matching (Yanic, Théo)}
-\todo{what we implement, experiments, metrics.}
-
-\subsection*{Axis 4: Extension to hand-object interaction (Yanic, Théo)}
-\todo{optional axis, datasets (Text2HOI, GRAB).}
+We first train a temporal autoencoder to compress bimanual motion and check reconstruction error in joint positions, rotations and hand trajectories. We then apply the Axis~2 text-conditioned flow to its continuous latent codes and decode generated samples. With matched HandX splits and compute, we compare latent and motion-space flows on FID, R-precision, diversity and sampling time, while varying latent size to measure the quality--speed trade-off.
+\textbf{Hand-object extension.} If time permits, we extend the latent representation to object pose and condition generation on text and object geometry, following the settings of Text2HOI~\cite{text2hoi}, LatentHOI~\cite{latenthoi} and HO-Flow~\cite{hoflow}. We will evaluate on their text-annotated interaction data and GRAB, including hand--object contact and penetration alongside motion quality.
 
 \textbf{Evaluation.} \todo{metrics shared by all axes, visualizations (step 9).}
 
@@ -76,14 +74,17 @@ We ported HandMDM~\cite{handmdm} (CLIP-conditioned transformer, Gaussian diffusi
   HandMDM, BOBSL3DT subset & R@k, FID & FID, R-prec. & cost of subsampling \\
   HandMDM, HandX only & R@k, FID & FID, R-prec. & HandX reference, reverse transfer \\
   HandMDM, BOBSL3DT + HandX & R@k, FID & FID, R-prec. & benefit of combining (c) \\
-  \todo{axes 2--4 rows} & & & \\
+  Flow, HandX & --- & FID, R-prec. & independent pairing baseline \\
+  OT flow, HandX & --- & FID, R-prec. & effect of OT pairing \\
+  Latent flow, HandX & --- & FID, R-prec. & quality vs. sampling time \\
   \bottomrule
 \end{tabular}
 \end{center}
 
 % ---------------------------------------------------------------- (iii) Group
 \section{Group and work sharing}
-\todo{members, who does what, shared components (data pipeline, evaluation), timeline.}
+Theo will focus on Axis 1, Yanic will focus on Axis 2 and for axis 3 we will divide the task between VAE training and Latent Flow Matching pipeline then one will focus on text-driven hand motion generation and the other on hand object interaction data.
+
 
 % ---------------------------------------------------------------- References
 {\footnotesize
@@ -91,6 +92,9 @@ We ported HandMDM~\cite{handmdm} (CLIP-conditioned transformer, Gaussian diffusi
 \setlength{\itemsep}{0pt}
 \bibitem{handmdm} L.~Bensabath, M.~Petrovich, G.~Varol. Text-Driven 3D Hand Motion Generation from Sign Language Data. CVPR 2026.
 \bibitem{handx} Z.~Zhang et al. HandX: Scaling Bimanual Motion and Interaction Generation. CVPR 2026.
+\bibitem{text2hoi} J.~Cha et al. Text2HOI: Text-guided 3D Motion Generation for Hand-Object Interaction. CVPR 2024.
+\bibitem{latenthoi} M.~Li et al. LatentHOI: On the Generalizable Hand Object Motion Generation with Latent Hand Diffusion. CVPR 2025.
+\bibitem{hoflow} Z.~Chen et al. HO-Flow: Generalizable Hand-Object Interaction Generation with Latent Flow Matching. arXiv:2604.10836, 2026.
 \end{thebibliography}
 }
 
